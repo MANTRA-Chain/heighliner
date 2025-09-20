@@ -7,9 +7,9 @@ ARG TARGETARCH
 ARG BUILDARCH
 
 RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then\
-        wget -c https://storage.googleapis.com/strangelove-public/musl/aarch64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
+        wget -c https://pkg.mantrachain.io/musl/aarch64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
     elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then\
-        wget -c https://storage.googleapis.com/strangelove-public/musl/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
+        wget -c https://pkg.mantrachain.io/musl/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
     fi
 
 ARG GITHUB_ORGANIZATION

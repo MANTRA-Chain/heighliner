@@ -3,7 +3,7 @@
   github-organization: public-awesome
   github-repo: stargaze
   dockerfile: cosmos
-  build-target: make install
+  build-target: LINK_STATICALLY=true make install
   binaries:
     - /go/bin/starsd
   build-env:

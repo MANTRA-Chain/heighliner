@@ -62,7 +62,7 @@ jobs:
       - uses: strangelove-ventures/heighliner-build-action@main
         with:
           chain: ${{ github.event.inputs.chain }}
-          heighliner-owner: strangelove-ventures
+          heighliner-owner: MANTRA-Chain
           github-organization: ${{ github.event.inputs.chain_github_organization }}
           github-repo: ${{ github.event.inputs.chain_github_repo }}
           git-ref: ${{ github.event.inputs.chain_release_tag}}

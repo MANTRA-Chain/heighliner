@@ -19,6 +19,8 @@ Please keep chains in alphabetical order.
 
 `build-env` -> Environment variables to be created during the build.
 
+`wasmvm-from-module` -> For `cosmos` chains only. By default libwasmvm_muslc is downloaded from the wasmvm repo's GitHub releases. Set this to `true` to extract it from the wasmvm Go module instead (`internal/api/libwasmvm_muslc.<arch>.a`, optionally xz-compressed). Needed when wasmvm is replaced with a private fork that ships the archive inside the module and publishes no release assets. The archive is covered by the module's `go.sum` entry, so it is verified by the go toolchain.
+
 `pre-build` -> Any extra arguments needed to build the chain binary. 
 
 `build-target` -> The build command specific to the chosen `dockerfile`. For `cosmos`, likely `make install`. For `cargo`, likely `build --release`.

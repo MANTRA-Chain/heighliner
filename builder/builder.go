@@ -238,6 +238,20 @@ func trimWasmvmVersionSuffix(repo string) string {
 	return repo
 }
 
+// getWasmvmModule returns the wasmvm module import path as required by the chain,
+// e.g. "github.com/CosmWasm/wasmvm/v3". Returns "" if wasmvm is not a dependency.
+// This is the path `go list -m` understands; any replace directive is resolved by go
+// itself, so a private fork needs no special handling here.
+func getWasmvmModule(modFile *modfile.File) string {
+	const wasmvmRepo = "github.com/CosmWasm/wasmvm"
+	for _, item := range modFile.Require {
+		if strings.HasPrefix(item.Mod.Path, wasmvmRepo) {
+			return item.Mod.Path
+		}
+	}
+	return ""
+}
+
 // getWasmvmVersion will get the wasmvm version from the mod file
 func getWasmvmVersion(modFile *modfile.File) string {
 	const defaultWasmvmRepo = "github.com/CosmWasm/wasmvm"
@@ -376,6 +390,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 
 	var gv GoVersion
 	var wasmvmVersion string
+	var wasmvmModule string
 	race := ""
 
 	modFile, err := getModFile(
@@ -397,6 +412,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		}
 
 		wasmvmVersion = getWasmvmVersion(modFile)
+		wasmvmModule = getWasmvmModule(modFile)
 
 		if h.race {
 			race = "true"
@@ -419,6 +435,11 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 	vendor := "false"
 	if vendorDir, err := os.Stat("vendor"); err == nil && vendorDir.IsDir() {
 		vendor = "true"
+	}
+
+	wasmvmFromModule := ""
+	if chainConfig.Build.WasmvmFromModule {
+		wasmvmFromModule = "true"
 	}
 
 	buildArgs := map[string]string{
@@ -444,6 +465,8 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"BUILD_TIMESTAMP":     buildTimestamp,
 		"GO_VERSION":          gv.Version,
 		"WASMVM_VERSION":      wasmvmVersion,
+		"WASMVM_MODULE":       wasmvmModule,
+		"WASMVM_FROM_MODULE":  wasmvmFromModule,
 		"RACE":                race,
 	}
 

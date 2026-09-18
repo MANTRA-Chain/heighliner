@@ -38,6 +38,12 @@ type ChainNodeConfig struct {
 	Platforms          []string       `yaml:"platforms"`
 	BuildEnv           []string       `yaml:"build-env"`
 	BaseImage          string         `yaml:"base-image"`
+
+	// WasmvmFromModule sources libwasmvm_muslc from the wasmvm Go module instead of
+	// downloading it from the wasmvm repo's GitHub releases. Required for chains whose
+	// wasmvm is replaced by a private fork that ships the archive inside the module and
+	// publishes no release assets.
+	WasmvmFromModule bool `yaml:"wasmvm-from-module"`
 }
 
 type ChainNodeDockerBuildConfig struct {

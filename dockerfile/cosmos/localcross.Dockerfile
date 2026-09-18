@@ -1,7 +1,7 @@
 ARG BASE_VERSION
 FROM --platform=$BUILDPLATFORM golang:${BASE_VERSION} AS build-env
 
-RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
+RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev xz
 
 ARG TARGETARCH
 ARG BUILDARCH
@@ -29,6 +29,8 @@ ARG BUILD_TAGS
 ARG PRE_BUILD
 ARG BUILD_DIR
 ARG WASMVM_VERSION
+ARG WASMVM_MODULE
+ARG WASMVM_FROM_MODULE
 
 ARG CLONE_KEY
 
@@ -59,9 +61,23 @@ RUN set -eux;\
       fi;\
     fi;\
     if [ ! -z "${WASMVM_VERSION}" ]; then\
-      WASMVM_REPO=$(echo $WASMVM_VERSION | awk '{print $1}');\
-      WASMVM_VERS=$(echo $WASMVM_VERSION | awk '{print $2}');\
-      wget -O $LIBDIR/libwasmvm_muslc.a https://${WASMVM_REPO}/releases/download/${WASMVM_VERS}/libwasmvm_muslc.${ARCH}.a;\
+      if [ "${WASMVM_FROM_MODULE}" = "true" ]; then\
+        (cd "${BUILD_DIR:-.}" && go mod download "${WASMVM_MODULE}");\
+        WASMVM_DIR=$(cd "${BUILD_DIR:-.}" && go list -m -f '{{.Dir}}' "${WASMVM_MODULE}");\
+        WASMVM_LIB="${WASMVM_DIR}/internal/api/libwasmvm_muslc.${ARCH}.a";\
+        if [ -f "${WASMVM_LIB}.xz" ]; then\
+          unxz -c "${WASMVM_LIB}.xz" > $LIBDIR/libwasmvm_muslc.a;\
+        elif [ -f "${WASMVM_LIB}" ]; then\
+          cp "${WASMVM_LIB}" $LIBDIR/libwasmvm_muslc.a;\
+        else\
+          echo "libwasmvm_muslc.${ARCH}.a[.xz] not found in ${WASMVM_MODULE}" >&2;\
+          exit 1;\
+        fi;\
+      else\
+        WASMVM_REPO=$(echo $WASMVM_VERSION | awk '{print $1}');\
+        WASMVM_VERS=$(echo $WASMVM_VERSION | awk '{print $2}');\
+        wget -O $LIBDIR/libwasmvm_muslc.a https://${WASMVM_REPO}/releases/download/${WASMVM_VERS}/libwasmvm_muslc.${ARCH}.a;\
+      fi;\
       ln $LIBDIR/libwasmvm_muslc.a $LIBDIR/libwasmvm_muslc.$(uname -m).a;\
     fi;\
     export GOOS=linux GOARCH=$TARGETARCH CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"';\
